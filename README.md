@@ -37,5 +37,5 @@ library-to-catalog.sh library.xml kiwix-catalog.yml [zim|zip]
 * Script **does not download** `library.xml` file. You can easily chain it to a `wget`|`curl` command though.
 
 ``` sh
-wget -o kiwix_library.xml http://library.kiwix.org/library.xml && library-to-catalog.sh kiwix_library.xml /path/to/kiwix.yml
+wget -O kiwix_library.xml http://download.kiwix.org/library/library.xml && library-to-catalog.sh kiwix_library.xml /path/to/kiwix.yml
 ```
