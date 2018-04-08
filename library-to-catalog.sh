@@ -28,11 +28,24 @@ function usage {
 
 function setup {
 	if [ -d $VIRTUAL_ENV -a -f $VIRTUAL_ENV/bin/python ] ; then
-		# virtualenv is present and OK
-		return 0
+		$VIRTUAL_ENV/bin/python -c 'import yaml; import pycountry; import requests; print("working virtualenv")'
+		if [ $? -eq 0 ] ; then
+			# virtualenv is present and OK
+			return 0
+		fi
 	fi
 
+	# remove previous failing venv if exists
+	rm -rf $VIRTUAL_ENV
+
+	# create new virtualenv off default python
 	virtualenv $VIRTUAL_ENV
+
+	# update to latests pip version (download.kiwix.org is broken)
+	wget -c -O ${ROOT}/get-pip.py https://bootstrap.pypa.io/get-pip.py
+	$VIRTUAL_ENV/bin/python ${ROOT}/get-pip.py
+
+	# install requirements through pip
 	$VIRTUAL_ENV/bin/pip install -r ${ROOT}/requirements.pip
 }
 
