@@ -58,6 +58,8 @@ function run {
 	$VIRTUAL_ENV/bin/python $ROOT/library-to-catalog.py $library_xml $tmp_yaml || fail
 	if [ -f $tmp_yaml ] ; then
 		mv $tmp_yaml $catalog_yaml
+		echo "SUCCESS. Kiwix library has been converted to catalog at ${catalog_yaml}."
+		ls -lh $catalog_yaml
 		exit 0
 	else
 		fail "YAML file ${tmp_yaml} has not been created."
