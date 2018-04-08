@@ -5,7 +5,7 @@ A script to convert a Kiwix library.xml file into a pibox/ideascube catalog.yml 
 
 # Requirements
 
-* Python3.4+
+* Python2.7+ or Python3.3+
 * Virtualenv
 * Working internet connexion (SHA-256 checksum and size of ZIM are fetched online)
 

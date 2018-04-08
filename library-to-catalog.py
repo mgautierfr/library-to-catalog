@@ -2,17 +2,25 @@
 # -*- coding: utf-8 -*-
 # vim: ai ts=4 sts=4 et sw=4 nu
 
+from __future__ import (unicode_literals, absolute_import,
+                        division, print_function)
 import re
 import os
 import sys
-import urllib
 import logging
 import hashlib
 import xml.etree.ElementTree as ET
 
 import yaml
 import requests
-from langcodes import Language
+import pycountry
+
+try:
+    text_type = unicode  # Python 2
+    from urlparse import urlparse, urljoin
+except NameError:
+    text_type = str      # Python 3
+    from urllib.parse import urlparse, urljoin
 
 LABELS = {
     'nopic': "NO PICTURE",
@@ -68,7 +76,7 @@ def get_local_size(fpath):
 
 def get_zip_url(url):
     ''' convert .zim.meta4 url to .zip one '''
-    purl = urllib.parse.urlparse(url)
+    purl = urlparse(url)
     path = purl.path
     fname = os.path.basename(url)
     dirent = path[:len(path) - len(fname)]
@@ -77,19 +85,19 @@ def get_zip_url(url):
         fname=re.sub(r'\.zim\.meta4$', '.zip', fname))
     new_dirent = dirent.replace("/zim/", "/portable/")
     new_path = "{dirent}{fname}".format(dirent=new_dirent, fname=new_fname)
-    return urllib.parse.urljoin(url, new_path)
+    return urljoin(url, new_path)
 
 
 def get_zim_url(url):
     ''' convert .zim.meta4 url to .zim one '''
-    purl = urllib.parse.urlparse(url)
+    purl = urlparse(url)
     path = purl.path
     fname = os.path.basename(url)
     dirent = path[:len(path) - len(fname)]
 
     new_fname = re.sub(r'\.zim\.meta4$', '.zim', fname)
     new_path = "{dirent}{fname}".format(dirent=dirent, fname=new_fname)
-    return urllib.parse.urljoin(url, new_path)
+    return urljoin(url, new_path)
 
 
 def clean(text):
@@ -99,7 +107,7 @@ def clean(text):
     return " ".join(text.splitlines())
 
 
-def get_attr(book, key, t=str):
+def get_attr(book, key, t=text_type):
     ''' attribute accessor for XML element '''
     value = book.attrib.get(key)
     if value is None:
@@ -147,7 +155,7 @@ def convert(library_fpath, catalog_fpath,
     logger.info("parsing xml library file `{}`".format(library_fpath))
     catalog = {}
     for book in root.iter('book'):
-        def ga(k, t=str):
+        def ga(k, t=text_type):
             return get_attr(book, k, t)
 
         # copy data from attributes
@@ -171,7 +179,15 @@ def convert(library_fpath, catalog_fpath,
         #   wikipedia ml)
         if lang_3 is None:
             continue
-        lang_1 = Language.get(lang_3).language
+
+        # find ISO 639-1 from ISO 639-3 (might not exist)
+        if re.search(r'[^a-z]', lang_3) is not None:
+            lang_3 = re.split(r'[^a-z]', lang_3, 1)[0]
+        try:
+            lang_1 = pycountry.languages.get(**{
+                'alpha_{}'.format(len(lang_3)): lang_3}).alpha_2
+        except (AttributeError, KeyError):
+            lang_1 = lang_3
 
         # url to final content file
         url = get_zip_url(meta_url) if use_zip else get_zim_url(meta_url)
@@ -179,7 +195,7 @@ def convert(library_fpath, catalog_fpath,
         # size and checksums are either captured over network or using
         # a local copy of all the files.
         if local_repository:
-            full_path = urllib.parse.urlparse(url).path
+            full_path = urlparse(url).path
             fname = os.path.basename(url)
             short_path = full_path[:-len(fname)]
             fpath = os.path.join(local_repository, short_path[1:], fname)

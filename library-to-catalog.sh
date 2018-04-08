@@ -33,7 +33,7 @@ function setup {
 	fi
 
 	virtualenv -p python3 $VIRTUAL_ENV
-	$VIRTUAL_ENV/bin/python -m pip install -r ${ROOT}/requirements.pip
+	$VIRTUAL_ENV/bin/pip install -r ${ROOT}/requirements.pip
 }
 
 
