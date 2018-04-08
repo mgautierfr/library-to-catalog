@@ -32,7 +32,7 @@ function setup {
 		return 0
 	fi
 
-	virtualenv -p python3 $VIRTUAL_ENV
+	virtualenv $VIRTUAL_ENV
 	$VIRTUAL_ENV/bin/pip install -r ${ROOT}/requirements.pip
 }
 
